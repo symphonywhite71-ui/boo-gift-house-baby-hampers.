@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boo Gift House - Hampers Bayi</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f8f6f7;color:#354052;margin:0}
+header{background:linear-gradient(120deg,#f5dce5,#dcecf8);padding:25px 18px}
+h1{margin:0;font-size:23px}header p{margin-bottom:0}
+main{padding:16px;max-width:850px;margin:auto}
+nav{display:flex;gap:7px;overflow:auto;margin-bottom:18px}
+nav button,button{padding:11px;border:0;border-radius:9px;background:#b8758e;color:white}
+nav button{white-space:nowrap}
+section{display:none;background:white;padding:16px;border-radius:14px;margin-bottom:14px}
+section.active{display:block}
+input,select,textarea{width:100%;padding:11px;margin:5px 0 12px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box}
+label{font-size:14px;font-weight:bold}
+.item{padding:12px;border-bottom:1px solid #eee}
+.total{font-size:19px;font-weight:bold}
+.small{color:#777;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+<h1>Boo Gift House</h1>
+<p>Manajemen Hampers Bayi · Tanjungpinang</p>
+</header>
+<main>
+<nav>
+<button onclick="show('home')">Ringkasan</button>
+<button onclick="show('produk')">Produk</button>
+<button onclick="show('pesanan')">Pesanan</button>
+<button onclick="show('stok')">Stok</button>
+</nav>
+
+<section id="home" class="active">
+<h2>Ringkasan Usaha</h2>
+<p>Total pesanan: <b id="jumlah">0</b></p>
+<p>Total omzet: <b id="omzet">Rp0</b></p>
+<p>Jumlah produk: <b id="jproduk">0</b></p>
+<p class="small">Data tersimpan di browser perangkat ini.</p>
+</section>
+
+<section id="produk">
+<h2>Tambah Produk Hampers</h2>
+<label>Nama produk</label>
+<input id="namaProduk" placeholder="Nama hampers">
+<label>Harga jual (Rp)</label>
+<input id="hargaProduk" type="number" placeholder="Harga">
+<label>Stok produk</label>
+<input id="stokProduk" type="number" value="0">
+<button onclick="tambahProduk()">Simpan Produk</button>
+<div id="daftarProduk"></div>
+</section>
+
+<section id="pesanan">
+<h2>Pesanan Pelanggan</h2>
+<label>Nama pelanggan</label>
+<input id="pelanggan" placeholder="Nama pelanggan">
+<label>Nomor WhatsApp</label>
+<input id="wa" placeholder="08xxxxxxxxxx">
+<label>Produk</label>
+<select id="pilihProduk" onchange="hargaOtomatis()"></select>
+<label>Jumlah</label>
+<input id="qty" type="number" value="1" min="1" oninput="hitung()">
+<label>Harga satuan (Rp)</label>
+<input id="harga" type="number" oninput="hitung()">
+<label>Pengiriman</label>
+<select id="kirim" onchange="cekKirim()">
+<option>Kurir</option>
+<option>Ambil sendiri</option>
+</select>
+<label>Ongkir (Rp)</label>
+<input id="ongkir" type="number" value="0" oninput="hitung()">
+<label>Pembayaran</label>
+<select id="bayar">
+<option>Cash</option>
+<option>QRIS</option>
+</select>
+<label>Status pembayaran</label>
+<select id="status">
+<option>Belum dibayar</option>
+<option>DP</option>
+<option>Lunas</option>
+</select>
+<label>Alamat / catatan</label>
+<textarea id="alamat"></textarea>
+<p class="total" id="total">Total: Rp0</p>
+<button onclick="simpanPesanan()">Simpan Pesanan</button>
+<div id="daftarPesanan"></div>
+</section>
+
+<section id="stok">
+<h2>Catatan Stok Bahan</h2>
+<label>Nama bahan</label>
+<input id="bahan" placeholder="Contoh: Jumper polos">
+<label>Jumlah masuk</label>
+<input id="jumlahBahan" type="number">
+<label>Satuan</label>
+<input id="satuan" placeholder="pcs, pack, meter">
+<button onclick="tambahStok()">Simpan Stok</button>
+<div id="daftarStok"></div>
+</section>
+</main>
+
+<script>
+let produk=JSON.parse(localStorage.getItem('booProduk')||'[]');
+let pesanan=JSON.parse(localStorage.getItem('booPesanan')||'[]');
+let stok=JSON.parse(localStorage.getItem('booStok')||'[]');
+function rupiah(n){return 'Rp'+Number(n||0).toLocaleString('id-ID')}
+function simpan(){localStorage.setItem('booProduk',JSON.stringify(produk));localStorage.setItem('booPesanan',JSON.stringify(pesanan));localStorage.setItem('booStok',JSON.stringify(stok));tampil()}
+function show(id){document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function tambahProduk(){let n=namaProduk.value,h=+hargaProduk.value,s=+stokProduk.value;if(!n||h<0)return alert('Isi nama dan harga produk');produk.push({n,h,s});namaProduk.value='';hargaProduk.value='';stokProduk.value=0;simpan()}
+function hargaOtomatis(){let p=produk[pilihProduk.value];harga.value=p?p.h:0;hitung()}
+function cekKirim(){if(kirim.value==='Ambil sendiri')ongkir.value=0;hitung()}
+function hitung(){let t=(+qty.value||0)*(+harga.value||0)+(+ongkir.value||0);total.textContent='Total: '+rupiah(t)}
+function simpanPesanan(){let p=produk[pilihProduk.value];if(!pelanggan.value||!p)return alert('Isi nama pelanggan dan pilih produk');let q=+qty.value;if(q<1)return alert('Jumlah tidak valid');if(p.s<q)return alert('Stok produk tidak mencukupi');let o={nama:pelanggan.value,wa:wa.value,produk:p.n,qty:q,harga:+harga.value,kirim:kirim.value,ongkir:+ongkir.value,bayar:bayar.value,status:status.value,alamat:alamat.value,total:q*(+harga.value)+(+ongkir.value)};p.s-=q;pesanan.push(o);simpan();alert('Pesanan berhasil disimpan');pelanggan.value='';wa.value='';alamat.value='';qty.value=1;hitung()}
+function tambahStok(){if(!bahan.value||!jumlahBahan.value)return alert('Isi nama dan jumlah stok');stok.push({n:bahan.value,q:+jumlahBahan.value,u:satuan.value});bahan.value='';jumlahBahan.value='';satuan.value='';simpan()}
+function tampil(){daftarProduk.innerHTML=produk.map((p,i)=>`<div class="item">${p.n}<br>${rupiah(p.h)} · Stok ${p.s}</div>`).join('');pilihProduk.innerHTML=produk.map((p,i)=>`<option value="${i}">${p.n}</option>`).join('');daftarPesanan.innerHTML=pesanan.map(o=>`<div class="item">${o.nama} · ${o.produk}<br>${o.qty} pcs · ${o.kirim} · ${o.bayar}<br><b>${rupiah(o.total)}</b> · ${o.status}<br><button onclick="kirimWA('${encodeURIComponent(o.nama)}','${encodeURIComponent(o.wa)}','${encodeURIComponent(o.produk)}','${o.qty}','${o.total}')">Kirim WhatsApp</button></div>`).join('');daftarStok.innerHTML=stok.map(s=>`<div class="item">${s.n}: ${s.q} ${s.u}</div>`).join('');jumlah.textContent=pesanan.length;omzet.textContent=rupiah(pesanan.reduce((a,b)=>a+b.total,0));jproduk.textContent=produk.length}
+function kirimWA(n,w,p,q,t){let phone=decodeURIComponent(w).replace(/\D/g,'').replace(/^0/,'62');if(!phone)return alert('Nomor WhatsApp belum diisi');let msg='Halo '+decodeURIComponent(n)+', rincian pesanan Boo Gift House: '+decodeURIComponent(p)+' x '+q+'. Total '+rupiah(t)+'. Terima kasih.';window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank')}
+tampil();hitung();
+</script>
+</body>
+</html>
